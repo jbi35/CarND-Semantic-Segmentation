@@ -140,15 +140,10 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     init = tf.global_variables_initializer()
     sess.run(init)
 
-    learning_info = []
-    #best_loss = 1000
-    #iterations_not_improved = 0
-
     # record training time
     t_start = int(time.time())
 
     # keep prob for dropout
-    # do we need this ??
     k_prob = 0.5
     # learning rate
     l_rate = 0.001
@@ -164,18 +159,13 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                             learning_rate: l_rate}
 
             _ , loss = sess.run((train_op,cross_entropy_loss), feed_dict=my_feed_dict)
-            #loss = sess.run(cross_entropy_loss)
             training_loss += (loss * len(batch_x))
-        
-        learning_info.append((training_loss))
-        learning_history = np.array(learning_info)
 
         elapsed_time = time.time()
         # print some meaningful information
         if i == 0:
             print("EPOCH  Training time   Training Loss ")
         print("{:3d}   {:.3f}         {:.6f}  {} ".format(i+1, elapsed_time - t_start, training_loss, learning_rate))
-
 
 tests.test_train_nn(train_nn)
 
@@ -190,18 +180,17 @@ def run():
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
-    epochs = 30
+    epochs = 15
     batch_size = 10
-
-    # do we need to save the model
-    #saver = tf.train.Saver()
-    #save_model_in_path = "./models/try_1"
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
     with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        sess.run(tf.local_variables_initializer())
+
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         # Create function to get batches
