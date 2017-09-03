@@ -5,7 +5,7 @@ import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
 import time
-import nnumpy as np
+import numpy as np
 
 
 # Check TensorFlow Version
@@ -108,13 +108,13 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
 
     # loss op
-    cross_entropy_loss = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label)
-    loss_op = tf.reduce_mean(cross_entropy_loss)
+    loss_op = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label)
+    cross_entropy_loss = tf.reduce_mean(loss_op)
 
     # training op
     # use adam optimizer for simplicity
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    train_op = optimizer.minimize(loss_op)
+    train_op = optimizer.minimize(cross_entropy_loss)
 
     return logits, train_op, cross_entropy_loss
 
@@ -130,8 +130,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param batch_size: Batch size
     :param get_batches_fn: Function to get batches of training data.  Call using get_batches_fn(batch_size)
     :param train_op: TF Operation to train the neural network
-    :param cross_entropy_loss: TF Tensor for the amount of loss
     :param input_image: TF Placeholder for input images
+    :param cross_entropy_loss: TF Tensor for the amount of loss
     :param correct_label: TF Placeholder for label images
     :param keep_prob: TF Placeholder for dropout keep probability
     :param learning_rate: TF Placeholder for learning rate
@@ -149,43 +149,32 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
     # keep prob for dropout
     # do we need this ??
-    keep_prob = 0.5
+    k_prob = 0.5
     # learning rate
     l_rate = 0.001
 
     # start training
-    print("Training...")
-    print()
+    print("Starting training...")
     for i in range(epochs):
         training_loss = 0.0
-        training_accuracy = 0.0
         for batch_x, batch_y in get_batches_fn(batch_size):
             my_feed_dict = {input_image: batch_x,
                             correct_label: batch_y,
-                            keep_prob: keep_prob,
+                            keep_prob: k_prob,
                             learning_rate: l_rate}
 
-            _, training_loss = sess.run((train_op,cross_entropy_loss), feed_dict=my_feed_dict)
-            #loss = sess.run((accuracy_operation, loss_operation), feed_dict=my_feed_dict)
-            # define these properly
-            # accuracy, loss = sess.run((accuracy_operation, loss_operation), feed_dict=my_feed_dict)
-            # training_accuracy += (accuracy * len(batch_x))
-            # training_loss += (loss * len(batch_x))
-        # TODO properly define these
-        validation_accuracy = 0
-        validation_loss = 0
-        learning_info.append((training_accuracy, training_loss, validation_accuracy, validation_loss, learning_rate))
+            _ , loss = sess.run((train_op,cross_entropy_loss), feed_dict=my_feed_dict)
+            #loss = sess.run(cross_entropy_loss)
+            training_loss += (loss * len(batch_x))
+        
+        learning_info.append((training_loss))
         learning_history = np.array(learning_info)
 
         elapsed_time = time.time()
         # print some meaningful information
         if i == 0:
-            print("EPOCH  Training time  Training Accuracy   Training Loss      Val. Accuracy       Val. Loss")
-        print("{:3d}   {:3d}       {:.6f}            {:.6f}           {:.6f}            {:.6f}       ".format(i+1, int(elapsed_time - t_start), training_accuracy, training_loss, validation_accuracy, validation_loss), end="")
-        print()
-
-    #saver.save(sess, save_model_in_path)
-    # plot_learning_curves(learning_history)
+            print("EPOCH  Training time   Training Loss ")
+        print("{:3d}   {:.3f}         {:.6f}  {} ".format(i+1, elapsed_time - t_start, training_loss, learning_rate))
 
 
 tests.test_train_nn(train_nn)
@@ -201,8 +190,8 @@ def run():
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
-    epochs = 1
-    batch_size = 100
+    epochs = 30
+    batch_size = 10
 
     # do we need to save the model
     #saver = tf.train.Saver()
