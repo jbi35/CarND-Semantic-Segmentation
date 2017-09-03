@@ -188,8 +188,6 @@ def run():
     #  https://www.cityscapes-dataset.com/
 
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        sess.run(tf.local_variables_initializer())
 
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
