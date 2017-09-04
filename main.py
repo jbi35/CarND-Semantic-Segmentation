@@ -172,7 +172,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         # print some meaningful information
         if i == 0:
             print("EPOCH  Training time   Training Loss ")
-        print("{:3d}   {:.3f}         {:.6f}  {} ".format(i+1, elapsed_time - t_start, training_loss, learning_rate))
+        print("{:3d}   {:.3f}         {:.6f} ".format(i+1, elapsed_time - t_start, training_loss))
 
 tests.test_train_nn(train_nn)
 
@@ -187,7 +187,7 @@ def run():
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
 
-    epochs = 30
+    epochs = 50
     batch_size = 10
 
     # OPTIONAL: Train and Inference on the cityscapes dataset instead of the Kitti dataset.
